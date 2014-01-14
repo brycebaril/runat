@@ -1,0 +1,38 @@
+{
+  "name": "runat",
+  "version": "0.0.0",
+  "description": "Redis-backed scheduled queue system with a Duplex stream interface",
+  "main": "runat.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "node test/"
+  },
+  "keywords": [
+    "queue",
+    "schedule",
+    "job",
+    "redis",
+    "task",
+    "stream",
+    "duplex"
+  ],
+  "author": "Bryce B. Baril",
+  "license": "MIT",
+  "devDependencies": {
+    "tape": "~2.3.2",
+    "terminus": "~1.0.8"
+  },
+  "dependencies": {
+    "redis": "~0.10.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brycebaril/runat.git"
+  },
+  "bugs": {
+    "url": "https://github.com/brycebaril/runat/issues"
+  },
+  "homepage": "https://github.com/brycebaril/runat"
+}
