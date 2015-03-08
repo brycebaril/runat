@@ -3,9 +3,6 @@ runat
 
 [![NPM](https://nodei.co/npm/runat.png)](https://nodei.co/npm/runat/)
 
-[![david-dm](https://david-dm.org/brycebaril/runat.png)](https://david-dm.org/brycebaril/runat/)
-[![david-dm](https://david-dm.org/brycebaril/runat/dev-status.png)](https://david-dm.org/brycebaril/runat#info=devDependencies/)
-
 Runat is a Redis-backed scheduled queue system with a Duplex stream interface.
 
 Schedule tasks in the future, and consume those events when they are supposed to happen via a streaming interface.

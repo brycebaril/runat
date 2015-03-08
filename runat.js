@@ -33,11 +33,12 @@ WorkQueue.prototype._write = function _write(job, encoding, callback) {
 
   this._connect()
 
-  this.client.zadd(this.queueName, job.runAt || 0, job.key, function (err, reply) {
-    if (err)
+  this.client.zadd(this.queueName, job.runAt || 0, job.key, function zaddReply(err, reply) {
+    if (err) {
       self.emit("error", "Error scheduling job: " + err)
+    }
+    callback()
   })
-  callback()
 }
 
 WorkQueue.prototype._read = function _read(n) {
@@ -51,7 +52,7 @@ WorkQueue.prototype._poll = function _poll() {
     .multi()
     .zrangebyscore(this.queueName, "-inf", ts)
     .zremrangebyscore(this.queueName, "-inf", ts)
-    .exec(function (err, replies) {
+    .exec(function execReply(err, replies) {
       if (err) {
         self.emit("error", err)
         return
@@ -77,7 +78,7 @@ WorkQueue.prototype.stop = function stop() {
     this.interval = null
   }
   if (this.client != null) {
-    this.client.quit(function () {
+    this.client.quit(function clientQuit() {
       self.client = null
     })
   }

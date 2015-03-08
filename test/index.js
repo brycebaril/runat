@@ -87,3 +87,14 @@ test("two workers", function (t) {
     t.end()
   }, 200)
 })
+
+test("receipt", function (t) {
+  var c = WQ({queueName: "~receipt", interval: 20})
+  c.write({runAt: 0, key: "hi"}, function cb() {
+    t.ok(1, "Got receipt (entered callback)")
+  })
+  setTimeout(function () {
+    c.stop()
+    t.end()
+  }, 30)
+})
