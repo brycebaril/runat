@@ -1,6 +1,6 @@
 {
   "name": "runat",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Redis-backed scheduled queue system with a Duplex stream interface",
   "main": "runat.js",
   "directories": {
