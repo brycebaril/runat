@@ -25,7 +25,7 @@
     "terminus": "~1.0.11"
   },
   "dependencies": {
-    "redis": "~0.11.0"
+    "redis": ">=0.11.0"
   },
   "repository": {
     "type": "git",
