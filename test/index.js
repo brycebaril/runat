@@ -2,9 +2,11 @@ var test = require("tape").test
 
 var WQ = require("../runat")
 var tail = require("terminus").tail
+var redis = require("redis")
 
 test("simple", function (t) {
-  var q = WQ({queueName: "~~simple", interval: 20})
+  var client = redis.createClient()
+  var q = WQ(client, {queueName: "~~simple", interval: 20})
 
   var jobs = []
   q.pipe(tail({objectMode: true}, function (job) {
@@ -25,13 +27,15 @@ test("simple", function (t) {
     t.equals(jobs[2].key, "3")
     t.ok(jobs[2].ran >= n + 100)
     q.stop()
+    client.quit()
     t.end()
   }, 200)
 })
 
 test("separate consumer", function (t) {
-  var q = WQ({queueName: "~~separate~consumer", interval: 20})
-  var c = WQ({queueName: "~~separate~consumer", interval: 20})
+  var client = redis.createClient()
+  var q = WQ(client, {queueName: "~~separate~consumer", interval: 20})
+  var c = WQ(client, {queueName: "~~separate~consumer", interval: 20})
 
   var jobs = []
   c.pipe(tail({objectMode: true}, function (job) {
@@ -53,13 +57,15 @@ test("separate consumer", function (t) {
     t.ok(jobs[2].ran >= n + 100)
     q.stop()
     c.stop()
+    client.quit()
     t.end()
   }, 200)
 })
 
 test("two workers", function (t) {
-  var q = WQ({queueName: "~~two~workers", interval: 20})
-  var c = WQ({queueName: "~~two~workers", interval: 20})
+  var client = redis.createClient()
+  var q = WQ(client, {queueName: "~~two~workers", interval: 20})
+  var c = WQ(client, {queueName: "~~two~workers", interval: 20})
 
   var jobs = []
   q.pipe(tail({objectMode: true}, function (job) {
@@ -84,26 +90,58 @@ test("two workers", function (t) {
     t.ok(jobs[2].ran >= n + 100)
     q.stop()
     c.stop()
+    client.quit()
     t.end()
   }, 200)
 })
 
 test("receipt", function (t) {
-  var c = WQ({queueName: "~receipt", interval: 20})
+  var client = redis.createClient()
+  var c = WQ(client, {queueName: "~receipt", interval: 20})
   c.write({runAt: 0, key: "hi"}, function cb() {
     t.ok(1, "Got receipt (entered callback)")
   })
   setTimeout(function () {
     c.stop()
+    client.quit()
     t.end()
   }, 30)
 })
 
 test("invalid job", function (t) {
-  var c = WQ({queueName: "~invalid~job", interval: 20})
+  var client = redis.createClient()
+  var c = WQ(client, {queueName: "~invalid~job", interval: 20})
   c.on('error', function (err) {
     t.ok(err, 'Received an error event')
+    client.quit()
     t.end()
   })
   c.write({runAt: 0, key: null})
+})
+
+test("invalid redis client", function (t) {
+  function noop() {}
+  t.throws(function () {
+    WQ()
+  })
+  t.throws(function () {
+    WQ({})
+  })
+  t.throws(function () {
+    WQ(null)
+  })
+  t.throws(function () {
+    WQ({ zrangebyscore: function () {} })
+  })
+  t.doesNotThrow(function () {
+    WQ({
+      zadd: noop,
+      multi: noop,
+      zrangebyscore: noop,
+      zremrangebyscore: noop,
+      exec: noop,
+      zrangebyscore: noop
+    })
+  })
+  t.end()
 })

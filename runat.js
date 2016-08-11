@@ -1,13 +1,17 @@
 module.exports = WorkQueue
 
-var redis = require("redis")
 var Duplex = require("stream").Duplex
 var inherits = require("util").inherits
 
 var DEFAULT_INTERVAL_MS = 100
+var USED_REDIS_CLIENT_METHODS = [ "zadd", "multi", "zrangebyscore", "zremrangebyscore", "exec" ]
 
-function WorkQueue(options) {
-  if (!(this instanceof WorkQueue)) return new WorkQueue(options)
+function WorkQueue(client, options) {
+  if (!(this instanceof WorkQueue)) return new WorkQueue(client, options)
+
+  if (!isRedis(client)) throw new Error("client must be an instance of a redis client (node_redis, ioredis)")
+
+  this.client = client
 
   this.options = options || {}
   this.queueName = this.options.queueName || "RunAt~default"
@@ -22,19 +26,12 @@ function WorkQueue(options) {
 }
 inherits(WorkQueue, Duplex)
 
-WorkQueue.prototype._connect = function _connect() {
-  if (this.client == null)
-    this.client = redis.createClient(this.options.redisPort, this.options.redisHost)
-}
-
 WorkQueue.prototype._write = function _write(job, encoding, callback) {
   var self = this
   if (!job.key) {
     self.emit("error", "Schedule jobs via: {runAt: ms_timestamp, key: 'your_job_key'")
     return
   }
-
-  this._connect()
 
   this.client.zadd(this.queueName, job.runAt || 0, job.key, function zaddReply(err, reply) {
     if (err) {
@@ -69,8 +66,6 @@ WorkQueue.prototype._poll = function _poll() {
 }
 
 WorkQueue.prototype._start = function _start() {
-  this._connect()
-
   if (this.interval == null)
     this.interval = setInterval(this._poll.bind(this), this.queueInterval)
 }
@@ -81,9 +76,12 @@ WorkQueue.prototype.stop = function stop() {
     clearInterval(this.interval)
     this.interval = null
   }
-  if (this.client != null) {
-    this.client.quit(function clientQuit() {
-      self.client = null
-    })
-  }
+}
+
+// Allow anything that has the surface area of the redis client used (enables consumers/tests to easily mock a redis client)
+function isRedis(client) {
+  if (!client) return false
+  return USED_REDIS_CLIENT_METHODS.length === USED_REDIS_CLIENT_METHODS.filter(function (method) {
+    return typeof client[method] === 'function'
+  }).length
 }
