@@ -98,3 +98,12 @@ test("receipt", function (t) {
     t.end()
   }, 30)
 })
+
+test("invalid job", function (t) {
+  var c = WQ({queueName: "~invalid~job", interval: 20})
+  c.on('error', function (err) {
+    t.ok(err, 'Received an error event')
+    t.end()
+  })
+  c.write({runAt: 0, key: null})
+})

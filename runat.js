@@ -28,14 +28,18 @@ WorkQueue.prototype._connect = function _connect() {
 }
 
 WorkQueue.prototype._write = function _write(job, encoding, callback) {
-  if (!job.key)
+  var self = this
+  if (!job.key) {
     self.emit("error", "Schedule jobs via: {runAt: ms_timestamp, key: 'your_job_key'")
+    return
+  }
 
   this._connect()
 
   this.client.zadd(this.queueName, job.runAt || 0, job.key, function zaddReply(err, reply) {
     if (err) {
       self.emit("error", "Error scheduling job: " + err)
+      return
     }
     callback()
   })
