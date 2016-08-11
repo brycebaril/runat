@@ -13,8 +13,6 @@ function WorkQueue(options) {
   this.queueName = this.options.queueName || "RunAt~default"
   this.queueInterval = this.options.interval || DEFAULT_INTERVAL_MS
 
-  this._dequedBuffer = []
-
   // force objectMode
   this.options.objectMode = true
 
