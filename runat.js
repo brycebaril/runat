@@ -1,3 +1,5 @@
+'use strict'
+
 module.exports = WorkQueue
 
 var Duplex = require("stream").Duplex
